@@ -1,0 +1,21 @@
+---
+- name: Install dependencies
+  apt: name={{ item }} update_cache=yes cache_valid_time=14400
+  with_items:
+    - python-pycurl # Ansible apt_repository module dependency
+
+- name: Add Redis apt repository
+  apt_repository: repo='ppa:chris-lea/redis-server'
+
+- name: Install Redis
+  apt: name=redis-server state=present
+
+- name: ensure that redis-server service enabled
+  service: name=redis-server enabled=yes
+
+- name: Apply custom config file
+  template: src=etc/redis/redis.conf.j2 dest=/etc/redis/redis.conf backup=yes
+  notify:
+    - restart redis
+
+- meta: flush_handlers
